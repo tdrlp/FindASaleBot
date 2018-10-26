@@ -1,16 +1,25 @@
+# Author        :   yute
+# Date          :   October 25th, 2018
+# Description   :   Script to email all the deals found on a certain subreddit
+#                   that match the criteria set by the user.
+
 import praw
 import smtplib
 import config
 import os
 
+# the name of the bot
+BOT_NAME = "yute"
 # subreddit to browse
 SUB = "bapcsalescanada"
+# email that will receive the item notification
+RECEIVING_EMAIL = config.EMAIL
 
 # terms to search for, must match all terms inside the arrays
 searchCriterias = [["1080", "GTX"],["1070", "GTX"]]
 
 def main():
-    reddit = praw.Reddit("yute")
+    reddit = praw.Reddit(BOT_NAME)
     subreddit = reddit.subreddit(SUB)
 
     if not os.path.isfile("sent_emails.txt"):
@@ -42,8 +51,8 @@ def main():
             if matchingWordsCounter == len(lst):
                 print("A match was found! Sending a notification ...")
                 if submission.id not in sentEmails:
-                    sendEmail(submission.title, "The bot has found an item!\n\n" +
-                    submission.title + "\n\nCheck reddit now!")
+                    sendEmail(submission.title, "The bot has found an item!\n\n" + submission.title + "\n" + submission.selftext +
+                    "\n" + submission.url + "\n\nCheck reddit now!")
 
                     # add that an email about this submission was sent
                     sentEmails.append(submission.id)
@@ -59,7 +68,7 @@ def sendEmail(title, content):
         mail.starttls()
         mail.login(config.EMAIL, config.PASSWORD)
         message = "Subject: {}\n\n{}".format(title, content)
-        mail.sendmail(config.EMAIL, config.EMAIL, message)
+        mail.sendmail(config.EMAIL, RECEIVING_EMAIL, message)
         mail.quit()
         print("\t>> Success: Notification sent!")
 
